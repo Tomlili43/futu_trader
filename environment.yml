@@ -1,0 +1,6 @@
+name: futu_api  # Replace with your desired environment name
+channels:
+  - defaults
+dependencies:
+  - python=3.8  # Replace with your desired Python version
+  - pandas=2.0.3
