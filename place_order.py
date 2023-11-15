@@ -6,7 +6,7 @@ PASSWORD = os.environ.get('FUTU_PASSWORD')
 FUTUOPEND_ADDRESS = '127.0.0.1'  # Futu OpenD 监听地址
 FUTUOPEND_PORT = 11111  # Futu OpenD 监听端口
 
-TRADING_ENVIRONMENT = TrdEnv.SIMULATE  # 交易环境：真实 / 模拟
+TRADING_ENVIRONMENT = TrdEnv.REAL  # 交易环境：真实 / 模拟
 TRADING_MARKET = TrdMarket.HK  # 交易市场权限，用于筛选对应交易市场权限的账户
 TRADING_PWD = decrypt(PASSWORD)  # 交易密码，用于解锁交易
 TRADING_PERIOD = KLType.K_1M  # 信号 K 线周期
@@ -14,10 +14,10 @@ TRADING_SECURITY = 'HK.09988'  # 交易标的
 
 trade_context = OpenSecTradeContext(filter_trdmarket=TRADING_MARKET, host=FUTUOPEND_ADDRESS, port=FUTUOPEND_PORT, security_firm=SecurityFirm.FUTUSECURITIES)  # 交易对象，根据交易品种修改交易对象类型
 
-def place_order(price,qyt):
+def place_order(price,qyt,trd_side=TrdSide.BUY):
     if unlock_trade():
         ret, data = trade_context.place_order(price=price, qty=qyt, 
-                                              code=TRADING_SECURITY, trd_side=TrdSide.BUY,
+                                              code=TRADING_SECURITY, trd_side=trd_side,
                                                 order_type=OrderType.NORMAL, trd_env=TRADING_ENVIRONMENT,
                                                 )
         if ret == RET_OK:
@@ -49,4 +49,4 @@ def on_init():
     return True
 
 if __name__ == '__main__':
-    place_order(66,100)
+    place_order(80,200,trd_side=TrdSide.BUY)
