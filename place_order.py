@@ -48,5 +48,18 @@ def on_init():
     print('************  策略开始运行 ***********')
     return True
 
+def get_five_min_low():
+    end = datetime.now().strftime('%Y-%m-%d')
+    start = (datetime.now() - timedelta(days=5)).strftime('%Y-%m-%d')
+    quote_ctx = OpenQuoteContext(host='127.0.0.1', port=11111)
+    ret, data, page_req_key = quote_ctx.request_history_kline(TRADING_SECURITY,ktype='K_DAY', start=start, end=end, max_count=5) # 5 per page, request the first page
+    if ret == RET_OK:
+        min_close = data['close'].min() # The minimum closing price of the first page
+        print(f"min_close: {min_close}")
+    else:
+        print('error:', data)
+    quote_ctx.close() # After using the connection, remember to close it to prevent the number of connections from running out
+    return min_close
+
 if __name__ == '__main__':
-    place_order(80,200,trd_side=TrdSide.BUY)
+    place_order(get_five_min_low(),100,trd_side=TrdSide.BUY)
