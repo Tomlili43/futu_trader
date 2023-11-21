@@ -14,6 +14,28 @@ TRADING_SECURITY = 'HK.09988'  # 交易标的
 
 trade_context = OpenSecTradeContext(filter_trdmarket=TRADING_MARKET, host=FUTUOPEND_ADDRESS, port=FUTUOPEND_PORT, security_firm=SecurityFirm.FUTUSECURITIES)  # 交易对象，根据交易品种修改交易对象类型
 
+# get open order from futu
+def get_open_order():
+    ret, data = trade_context.order_list_query()
+    if ret == RET_OK:
+        if data.shape[0] > 0:  # If the order list is not empty
+            print(data[['code', 'price', 'qty']])
+    else:
+        print('order_list_query error: ', data)
+    trade_context.close()
+
+# get order status from futu
+def get_order_status(order_id):
+    ret, data = trade_context.order_list_query(order_id=order_id)
+    if ret == RET_OK:
+        print(data)
+        print(data['order_status'][0])  # Get the order ID of the placed order
+        print(data['order_status'].values.tolist())  # Convert to list
+    else:
+        print('place_order error: ', data)
+    trade_context.close()
+
+
 def place_order(price,qyt,trd_side=TrdSide.BUY):
     if unlock_trade():
         ret, data = trade_context.place_order(price=price, qty=qyt, 
@@ -21,13 +43,10 @@ def place_order(price,qyt,trd_side=TrdSide.BUY):
                                                 order_type=OrderType.NORMAL, trd_env=TRADING_ENVIRONMENT,
                                                 )
         if ret == RET_OK:
-            print(data)
-            print(data['order_id'][0])  # Get the order ID of the placed order
-            print(data['order_id'].values.tolist())  # Convert to list
+            print(data[['price', 'qty']])
         else:
             print('place_order error: ', data)
     trade_context.close()
-
 
 # 解锁交易
 def unlock_trade():
@@ -61,5 +80,17 @@ def get_five_min_low():
     quote_ctx.close() # After using the connection, remember to close it to prevent the number of connections from running out
     return max_close
 
+# get position then sell price at buying price *1.04
+def get_position():
+    ret, data = trade_context.position_list_query()
+    if ret == RET_OK:
+        if data.shape[0] > 0:  # If the position list is not empty
+            # print stock name qty cost_price market_val
+            print(data[['stock_name', 'qty', 'cost_price', 'market_val']])
+            return data['cost_price'][0]
+    else:
+        print('position_list_query error: ', data)
 if __name__ == '__main__':
-    place_order(get_five_min_low(),200,trd_side=TrdSide.SELL)
+    buying_price = get_position()
+    place_order(buying_price*1.04,200,trd_side=TrdSide.SELL)
+    # place_order(get_five_min_low(),200,trd_side=TrdSide.SELL)
